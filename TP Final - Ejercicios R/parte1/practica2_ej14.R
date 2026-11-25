@@ -1,5 +1,5 @@
 # IECD - Practica 2 - Ejercicio 14
-# Muestra de una exponencial E(lambda), F empírica vs. estimador paramétrico
+# Muestra de una exponencial E(lambda), F empirica vs. estimador parametrico
 
 
 set.seed(123)
