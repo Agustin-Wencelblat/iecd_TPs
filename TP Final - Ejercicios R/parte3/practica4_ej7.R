@@ -1,7 +1,5 @@
-# =============================================================================
-# IECD - Práctica 4 (Bootstrap) - Ejercicio 7
+# IECD - Practica 4 (Bootstrap) - Ejercicio 7
 # Bootstrap de la mediana (y de la media) de Price en MustangPrice
-# =============================================================================
 
 MustangPrice <- read.csv("MustangPrice.csv")    # o: library(Lock5Data); data("MustangPrice")
 price <- MustangPrice$Price
@@ -17,7 +15,7 @@ hist(medianas_boot, breaks = 60, col = "lightgreen", border = "white",
      main = "Medianas bootstrap de Price", xlab = "mediana")
 abline(v = median(price), col = "red", lwd = 2)
 
-# ¿Cuántos valores distintos toma la mediana bootstrap?
+# cuantos valores distintos toma la mediana bootstrap?
 length(unique(medianas_boot))
 sort(table(medianas_boot), decreasing = TRUE)[1:6] / B
 sort(price)
@@ -30,5 +28,5 @@ abline(v = mean(price), col = "red", lwd = 2)
 length(unique(medias_boot))
 
 # Intervalos de nivel 0.95 para la media con ambos métodos
-mean(price) + c(-1, 1) * qnorm(0.975) * sd(medias_boot)   # normal
-quantile(medias_boot, c(0.025, 0.975))                    # percentil
+mean(price) + c(-1, 1) * qnorm(0.975) * sd(medias_boot) # normal
+quantile(medias_boot, c(0.025, 0.975)) # percentil
