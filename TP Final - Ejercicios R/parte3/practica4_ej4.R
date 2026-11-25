@@ -1,9 +1,8 @@
-# =============================================================================
-# IECD - Práctica 4 (Bootstrap) - Ejercicio 4
-# ¿Está equilibrado el dado? Bootstrap no paramétrico para una proporción
-# =============================================================================
+# IECD - Practica 4 (Bootstrap) - Ejercicio 4
+# Esta equilibrado el dado? Bootstrap no parametrico para una proporcion
 
-# Los datos se pueden pegar con scan() o directamente así:
+
+# uso esto en vez de scan
 dado <- c(2,2,4,6,1,3,1,3,2,4,4,4,4,4,6,3,3,4,1,2,1,6,3,2,3,4,1,1,5,4,1,4,6,
           4,1,2,1,5,4,3,3,1,3,1,6,5,1,3,2,3,6,2,4,2,6,6,5,2,4,4,1,4,3,1,2,1,
           6,1,1,3,1,6,6,1,2,6,1,1,4,5,4,1,5,2,2,1,6,6,1,2,1,3,1,3,3,4,3,3,3,5)
@@ -11,11 +10,11 @@ n <- length(dado)      # 100
 alpha <- 0.05
 B <- 5000
 
-# Función general: hace (i)-(v) para el estimador "proporción de datos que cumplen cond"
+# Funcion general: hace (i)-(v) para el estimador "proporcion de datos que cumplen cond"
 analizar <- function(datos, estimador, valor_equilibrado, titulo) {
   theta_obs <- estimador(datos)
 
-  # (i) una muestra bootstrap: n datos tomados con reposición de los observados
+  # (i) una muestra bootstrap: n datos tomados con reposicion de los observados
   muestra_boot <- sample(datos, size = length(datos), replace = TRUE)
   estimador(muestra_boot)
 
@@ -29,7 +28,7 @@ analizar <- function(datos, estimador, valor_equilibrado, titulo) {
   abline(v = theta_obs, col = "red", lwd = 2)
   abline(v = valor_equilibrado, col = "black", lwd = 2, lty = 2)
 
-  # (iv) error estándar bootstrap
+  # (iv) error estandar bootstrap
   se_boot <- sd(titas.boot)
 
   # (v) intervalos de nivel 0.95
