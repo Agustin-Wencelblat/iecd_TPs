@@ -1,16 +1,12 @@
-# =============================================================================
-# IECD - Práctica 5 (Tests) - Ejercicio 23 (Debernardi.csv)
-# Comparación de log(LYVE1) entre los tres grupos de diagnosis
-# =============================================================================
+# IECD - Practica 5 (Tests) - Ejercicio 23 (Debernardi.csv)
+# comparamos log(LYVE1) entre los tres grupos de diagnosis
 
 datos <- read.csv("Debernardi.csv")
 datos$diagnosis <- factor(datos$diagnosis)
 datos$logLYVE1 <- log(datos$LYVE1)
 colores <- c("1" = "#1b9e77", "2" = "#d95f02", "3" = "#7570b3")
 
-# -----------------------------------------------------------------------------
 # a) QQ-plots normales y boxplots, para LYVE1 y log(LYVE1)
-# -----------------------------------------------------------------------------
 for (v in c("LYVE1", "logLYVE1")) {
   par(mfrow = c(1, 3))
   for (g in levels(datos$diagnosis)) {
@@ -30,20 +26,16 @@ par(mfrow = c(1, 1))
 aggregate(logLYVE1 ~ diagnosis, data = datos,
           FUN = function(x) c(n = length(x), media = mean(x), desvio = sd(x)))
 
-# -----------------------------------------------------------------------------
 # b) H0: mu1 = mu2 vs H1: mu1 != mu2 para log(LYVE1), nivel 0.01
-# -----------------------------------------------------------------------------
 x1 <- datos$logLYVE1[datos$diagnosis == 1]
 x2 <- datos$logLYVE1[datos$diagnosis == 2]
 x3 <- datos$logLYVE1[datos$diagnosis == 3]
 
-var.test(x1, x2)                                   # ¿varianzas iguales?
+var.test(x1, x2) # ¿varianzas iguales?
 t.test(x1, x2, var.equal = TRUE,  conf.level = 0.99)  # S_p^2
 t.test(x1, x2, var.equal = FALSE, conf.level = 0.99)  # Welch
 
-# -----------------------------------------------------------------------------
 # c) Las tres comparaciones con nivel global 0.01 (Bonferroni: 0.01/3 cada una)
-# -----------------------------------------------------------------------------
 alpha_global <- 0.01
 alpha_indiv  <- alpha_global / 3
 
