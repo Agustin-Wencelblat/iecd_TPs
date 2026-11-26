@@ -1,0 +1,262 @@
+# IECD - PrActica 6 (Regresión lineal) - Ejercicio 7
+# SelecciOn de modelos con un conjunto de validaciOn (credit.txt)
+
+
+credit <- read.table("credit.txt", header = TRUE, sep = ",")
+n <- nrow(credit)
+
+# ParticiOn aleatoria: ~2/3 entrenamiento, el resto testeo
+set.seed(7)
+idx_train <- sample(1:n, size = round(2 * n / 3))
+train <- credit[idx_train, ]
+test  <- credit[-idx_train, ]
+
+# Los 8 subconjuntos de {Income, Cards, Age} (el vacIo = sOlo intercept)
+vars <- c("Income", "Cards", "Age")
+subconjuntos <- unlist(lapply(0:3, function(k) combn(vars, k, simplify = FALSE)),
+                       recursive = FALSE)
+
+W_modelo <- function(sub, train, test) {
+  formula <- if (length(sub) == 0) Balance ~ 1
+             else as.formula(paste("Balance ~", paste(sub, collapse = " + ")))
+  ajuste <- lm(formula, data = train)                 # coeficientes con Entrenamiento
+  pred   <- predict(ajuste, newdata = test)           # predicción de Testeo
+  sum((test$Balance - pred)^2)                        # W
+}
+
+nombres <- sapply(subconjuntos, function(s) if (length(s) == 0) "(sólo intercept)"
+                                            else paste(s, collapse = " + "))
+W <- sapply(subconjuntos, W_modelo, train = train, test = test)
+resultado <- data.frame(modelo = nombres, W = W)
+resultado[order(resultado$W), ]
+
+# Ejercicio 8
+# Validación cruzada "dejando uno afuera" para 4 modelos (glakes.csv)
+
+glakes <- read.csv("glakes.csv")
+Peso   <- glakes$Tonnage
+Tiempo <- glakes$Time
+n <- length(Tiempo)
+datos <- data.frame(Tiempo, Peso, P25 = Peso^0.25, P50 = Peso^0.5)
+
+modelos <- list(
+  a = list(f = Tiempo ~ 0 + Peso,            back = identity),  # sin intercept
+  b = list(f = Tiempo ~ Peso,                back = identity),
+  c = list(f = log(Tiempo) ~ P25,            back = exp),
+  d = list(f = log(Tiempo) ~ P25 + P50,      back = exp)
+)
+
+W_loo <- function(m) {
+  r <- numeric(n)
+  for (i in 1:n) {
+    ajuste <- lm(m$f, data = datos[-i, ])                 # todas salvo la i-ésima
+    pred   <- m$back(predict(ajuste, newdata = datos[i, ]))
+    r[i]   <- datos$Tiempo[i] - pred                      # residuo en la escala de Tiempo
+  }
+  sum(r^2)
+}
+
+W <- sapply(modelos, W_loo)
+round(sort(W), 1)
+
+# Para comparar: suma de residuos al cuadrado sin dejar afuera
+W_train <- sapply(modelos, function(m) sum((datos$Tiempo - m$back(fitted(lm(m$f, data = datos))))^2))
+round(rbind(LOOCV = W, entrenamiento = W_train), 1)
+
+plot(Peso, Tiempo, pch = 19, main = "Grand Lakes: tiempo de descarga vs. peso")
+grilla <- data.frame(Peso = seq(min(Peso), max(Peso), length.out = 300))
+grilla$P25 <- grilla$Peso^0.25; grilla$P50 <- grilla$Peso^0.5
+cols <- c(a = "grey50", b = "blue", c = "red", d = "darkgreen")
+for (k in names(modelos)) {
+  lines(grilla$Peso, modelos[[k]]$back(predict(lm(modelos[[k]]$f, data = datos), grilla)),
+        col = cols[k], lwd = 2)
+}
+legend("topleft", bty = "n", lwd = 2, col = cols, legend = paste("modelo", names(modelos)))
+
+
+
+# Ejercicio 9
+# Calor de fraguado del cemento (cemento.txt): multicolinealidad
+
+cemento <- read.table("cemento.txt", header = TRUE)
+n <- nrow(cemento)
+
+# a) matriz de correlación
+round(cor(cemento), 3)
+
+# b) modelo completo con intercept
+m_completo <- lm(y ~ x1 + x2 + x3 + x4 + x5, data = cemento)
+summary(m_completo)
+
+# c) suma de las 5 covariables
+rowSums(cemento[, c("x1", "x2", "x3", "x4", "x5")])
+
+# d) modelo sin intercept
+m_sin_intercept <- lm(y ~ 0 + x1 + x2 + x3 + x4 + x5, data = cemento)
+summary(m_sin_intercept)
+
+# e) modelo con las variables significativas (nivel 0.05) del ajuste sin intercept: x2, x3, x4
+m_reducido <- lm(y ~ 0 + x2 + x3 + x4, data = cemento)
+summary(m_reducido)
+# variante: agregar x1, que queda en el borde (p = 0.088)
+m_reducido_x1 <- lm(y ~ 0 + x1 + x2 + x3 + x4, data = cemento)
+summary(m_reducido_x1)
+
+# f) validación cruzada "dejando uno afuera" (procedimiento del ejercicio 8)
+W_loo <- function(formula) {
+  r <- sapply(1:n, function(i) {
+    ajuste <- lm(formula, data = cemento[-i, ])
+    cemento$y[i] - predict(ajuste, newdata = cemento[i, ])
+  })
+  sum(r^2)
+}
+W <- c(completo_con_intercept = W_loo(formula(m_completo)),
+       completo_sin_intercept = W_loo(formula(m_sin_intercept)),
+       reducido_x2_x3_x4      = W_loo(formula(m_reducido)),
+       reducido_x1_x2_x3_x4   = W_loo(formula(m_reducido_x1)))
+round(sort(W), 2)
+
+
+# Ejercicio 10
+# Regresion lineal simple con datos simulados: y = -1 + 0.5 x + epsilon
+
+
+ejercicio10 <- function(sigma2, n = 100, semilla = 10) {
+  set.seed(semilla)
+  cat("\n sigma^2 =", sigma2)
+
+  # a) b) c)
+  x <- rnorm(n) # N(0, 1)
+  epsilon <- rnorm(n, mean = 0, sd = sqrt(sigma2))
+  y <- -1 + 0.5 * x + epsilon
+  cat("longitud de y:", length(y), "  (beta0 = -1, beta1 = 0.5)\n")
+
+  # d) scatterplot
+  plot(x, y, pch = 19, col = "grey40", main = bquote(sigma^2 == .(sigma2)))
+
+  # e) ajuste lineal
+  ajuste <- lm(y ~ x)
+  print(summary(ajuste)$coefficients)
+  cat("sigma^2 estimado (S^2):", summary(ajuste)$sigma^2, "  verdadero:", sigma2, "\n")
+  print(confint(ajuste))
+
+  # f) recta estimada y recta verdadera
+  abline(ajuste, col = "red", lwd = 2)
+  abline(a = -1, b = 0.5, col = "blue", lwd = 2, lty = 2)
+
+  # g) modelo cuadratico
+  ajuste2 <- lm(y ~ x + I(x^2))
+  print(summary(ajuste2)$coefficients)
+  grilla <- seq(min(x), max(x), length.out = 200)
+  lines(grilla, predict(ajuste2, data.frame(x = grilla)), col = "darkgreen", lwd = 2)
+  legend("topleft", bg = "white", cex = 0.85, lwd = 2, lty = c(1, 2, 1),
+         col = c("red", "blue", "darkgreen"),
+         legend = c("recta de minimos cuadrados", "recta verdadera", "ajuste cuadratico"))
+  cat("R^2 lineal:", summary(ajuste)$r.squared,
+      "  R^2 cuadrático:", summary(ajuste2)$r.squared, "\n")
+  print(anova(ajuste, ajuste2))     # test F de que el termino cuadrático vale 0
+  invisible(list(lineal = ajuste, cuadratico = ajuste2))
+}
+
+# a) a g) con sigma^2 = 0.025; h) con 10 y 100 veces más varianza
+par(mfrow = c(1, 3))
+for (s2 in c(0.025, 0.25, 2.5)) ejercicio10(s2)
+par(mfrow = c(1, 1))
+
+
+
+# IECD - Práctica 6 (Regresión lineal) - Ejercicio 11
+# y = 2 + 2 x1 + 0.3 x2 + epsilon,  x1, x2 ~ U(0, 1)
+
+
+ejercicio11 <- function(sigma, n = 100, semilla = 11) {
+  set.seed(semilla)
+  cat("\n sigma =", sigma)
+
+  # a) datos (verdaderos coeficientes: beta0 = 2, beta1 = 2, beta2 = 0.3)
+  x1 <- runif(n)
+  x2 <- runif(n)
+  y  <- 2 + 2 * x1 + 0.3 * x2 + rnorm(n, 0, sigma)
+
+  # b) scatterplots de a pares
+  pairs(data.frame(y, x1, x2), pch = 19, col = "grey40",
+        main = paste("sigma =", sigma))
+
+  # c) ajuste, significatividad, R^2 y test F
+  ajuste <- lm(y ~ x1 + x2)
+  s <- summary(ajuste)
+  print(s$coefficients)
+  f <- s$fstatistic
+  cat("R^2 =", round(s$r.squared, 4),
+      "  F =", round(f[1], 2), "  p-valor F =",
+      signif(pf(f[1], f[2], f[3], lower.tail = FALSE), 3), "\n")
+  print(confint(ajuste))
+  invisible(ajuste)
+}
+
+ejercicio11(sigma = 1)       # a), b), c)
+ejercicio11(sigma = 0.5)     # d)
+ejercicio11(sigma = 0.25)    # d)
+
+
+
+# Ejercicio 12
+# correlacion entre los estimadores de minimos cuadrados
+# y_i = 1 + 2 x_i1 + 4 x_i2 + eps_i,  (x1, x2) ~ N2(mu, Sigma),  eps ~ N(0, 1)
+
+
+library(MASS)                      # mvrnorm
+beta <- c(1, 2, 4)
+n    <- 50
+Nrep <- 1000
+
+# Correlacion entre los coeficientes a partir de una matriz de diseno:
+# Cov(beta_hat) = sigma^2 (X'X)^{-1}  =>  corr_ij = c_ij / sqrt(c_ii c_jj)
+cor_desde_C <- function(C) {
+  r <- unname(cov2cor(C))
+  c(b0_b1 = r[1, 2], b0_b2 = r[1, 3], b1_b2 = r[2, 3])
+}
+
+escenario <- function(mu, Sigma, titulo, semilla) {
+  set.seed(semilla)
+  cat("\n================", titulo, "================\n")
+
+  # a) una muestra de (x1, x2)
+  X12 <- mvrnorm(n, mu = mu, Sigma = Sigma)
+  cat("correlación muestral entre x1 y x2:", round(cor(X12[, 1], X12[, 2]), 3), "\n")
+
+  # b) y c) respuestas y ajuste
+  y <- beta[1] + X12 %*% beta[2:3] + rnorm(n)
+  coefs <- coef(lm(y ~ X12[, 1] + X12[, 2]))
+  print(rbind(verdadero = beta, estimado = round(unname(coefs), 4)))
+
+  # d) correlaciones estimadas a partir de la matriz de diseno de esta muestra
+  X <- cbind(1, X12)
+  cat("d) correlaciones según (X'X)^{-1}:\n")
+  print(round(cor_desde_C(solve(t(X) %*% X)), 3))
+
+  # e) Nrep repeticiones de a), b), c)
+  B <- t(replicate(Nrep, {
+    X12 <- mvrnorm(n, mu = mu, Sigma = Sigma)
+    y   <- beta[1] + X12 %*% beta[2:3] + rnorm(n)
+    coef(lm(y ~ X12[, 1] + X12[, 2]))
+  }))
+  colnames(B) <- c("b0_hat", "b1_hat", "b2_hat")
+
+  # f) scatterplots y correlaciones muestrales
+  pairs(B, pch = 20, col = rgb(0, 0, 0, 0.3), main = titulo)
+  R <- cor(B)
+  cat("f) correlaciones muestrales entre los 1000 vectores de coeficientes:\n")
+  print(round(c(b0_b1 = R[1, 2], b0_b2 = R[1, 3], b1_b2 = R[2, 3]), 3))
+
+  # Referencia: aproximación con E(X'X)/n en lugar de X'X
+  M <- rbind(c(1, mu), cbind(mu, Sigma + mu %o% mu))
+  cat("aproximación teórica con E(X'X):\n")
+  print(round(cor_desde_C(solve(M)), 3))
+  invisible(B)
+}
+
+Sigma_a <- matrix(c(1, 0.5, 0.5, 1), 2)
+escenario(c(1, 2), Sigma_a,  "a)-f): mu = (1, 2), corr(x1, x2) = 0.5", semilla = 12)
+escenario(c(5, 2), diag(2),  "g): mu = (5, 2), Sigma = I",              semilla = 13)
+escenario(c(0, 2), diag(2),  "h): mu = (0, 2), Sigma = I",              semilla = 14)
