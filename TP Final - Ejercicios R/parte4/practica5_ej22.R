@@ -1,4 +1,4 @@
-# IECD - PrActica 5 (Tests) - Ejercicio 22 c)
+# IECD - Practica 5 (Tests) - Ejercicio 22 c)
 # Potencia del test del signo vs el test z para la media (normal, sigma conocido)
 
 n <- 100; a0 <- 20; sigma0 <- 4; alpha <- 0.05
