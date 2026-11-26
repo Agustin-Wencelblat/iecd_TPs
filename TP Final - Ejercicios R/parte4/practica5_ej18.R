@@ -1,5 +1,5 @@
 # IECD - Practica 5 (Tests) - Ejercicio 18
-# Distribución del p-valor bajo H0
+# Distrib del p-valor bajo H0
 
 
 set.seed(18)
@@ -25,5 +25,5 @@ abline(h = 1, col = "red", lwd = 2) # densidad de la U(0, 1)
 c(alpha_0.05 = mean(pvalores < 0.05), alpha_0.10 = mean(pvalores < 0.10))
 
 # comparo la F empirica de los p-valores con la de una U(0,1)
-plot(ecdf(pvalores), do.points = FALSE, main = "F empírica de los p-valores")
+plot(ecdf(pvalores), do.points = FALSE, main = "F empirica de los p-valores")
 abline(0, 1, col = "red", lwd = 2)
