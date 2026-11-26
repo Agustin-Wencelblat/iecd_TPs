@@ -1,28 +1,22 @@
-# =============================================================================
-# IECD - Práctica 1 - Ejercicios 1 y 9 (Debernardi.csv, cáncer de páncreas)
+# IECD - Practica 1 - Ejercicios 1 y 9 Debernardi.csv
 # diagnosis: 1 = control sano, 2 = enfermedad benigna del páncreas/hepatobiliar,
 #            3 = adenocarcinoma ductal de páncreas (cáncer)
-# =============================================================================
 
 datos <- read.csv("Debernardi.csv")
 datos$diagnosis <- factor(datos$diagnosis)
 colores <- c("1" = "#1b9e77", "2" = "#d95f02", "3" = "#7570b3")
 
-# -----------------------------------------------------------------------------
 # Ejercicio 1
-# -----------------------------------------------------------------------------
 # a) tabla de frecuencias absolutas y relativas
 tabla <- table(datos$diagnosis)
 cbind(frecuencia = tabla, frec_relativa = round(prop.table(tabla), 4))
 
-# b) gráfico de barras
+# b) grafico de barras
 barplot(prop.table(tabla), col = colores, ylim = c(0, 0.4),
         names.arg = c("1: control", "2: benigna", "3: cáncer"),
         ylab = "Frecuencia relativa", main = "Distribución de diagnosis")
 
-# -----------------------------------------------------------------------------
 # Ejercicio 9
-# -----------------------------------------------------------------------------
 lyve <- split(datos$LYVE1, datos$diagnosis)
 sapply(lyve, summary)
 
