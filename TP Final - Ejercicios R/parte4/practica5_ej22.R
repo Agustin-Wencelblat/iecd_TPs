@@ -1,7 +1,5 @@
-# =============================================================================
-# IECD - Práctica 5 (Tests) - Ejercicio 22 c)
-# Potencia del test del signo vs. el test z para la media (normal, sigma conocido)
-# =============================================================================
+# IECD - PrActica 5 (Tests) - Ejercicio 22 c)
+# Potencia del test del signo vs el test z para la media (normal, sigma conocido)
 
 n <- 100; a0 <- 20; sigma0 <- 4; alpha <- 0.05
 z <- qnorm(1 - alpha / 2)
@@ -17,7 +15,7 @@ pot_z <- function(mu1) {
 pot_signo <- function(mu1) {
   th1 <- 1 - pnorm((a0 - mu1) / sigma0)
   s   <- sqrt(th1 * (1 - th1) / n)
-  lim <- 1/2 + c(-1, 1) * z / (2 * sqrt(n))     # región de aceptación para Tbar
+  lim <- 1/2 + c(-1, 1) * z / (2 * sqrt(n)) # región de aceptacion tbar
   1 - pnorm((lim[2] - th1) / s) + pnorm((lim[1] - th1) / s)
 }
 
