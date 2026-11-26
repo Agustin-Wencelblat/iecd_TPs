@@ -1,4 +1,4 @@
-# IECD - Práctica 5 (Tests) - Ejercicio 20
+# IECD - Practica 5 (Tests) - Ejercicio 20
 # Nacimientos por día de la semana (EE.UU., 1977, 5000 nacimientos)
 
 W <- c(lunes = 747, martes = 766, miercoles = 749, jueves = 741,
