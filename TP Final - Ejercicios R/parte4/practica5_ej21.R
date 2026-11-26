@@ -1,4 +1,4 @@
-# IECD - PrActica 5 (Tests) - Ejercicio 21 d)
+# IECD - Practica 5 (Tests) - Ejercicio 21 d)
 # Test phi (se solapan los IC?) vs. test t de dos muestras (psi)
 
 set.seed(21)
